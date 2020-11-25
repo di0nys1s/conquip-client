@@ -23,8 +23,6 @@ const AsyncUser = defineAsyncComponent({
     suspensible: false
   })
 
-// comment
-
 export default {
   name: 'Users',
   components: {
