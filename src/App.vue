@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <el-container direction="vertical">
-      <Header />
-      <el-main style="background-color: #efefef; height: 900px">
+    <el-container v-if="visible" direction="vertical">
+      <Header :username="user" />
+      <el-main style="background-color: #efefef; height: 900px;">
 
-        <div style="background-color: #efefef">
+        <div v-if="user" style="background-color: #efefef">
           <el-row :gutter="5">
             <el-col :lg="5" :sm="6" :xs="24">
               <Navigation />
@@ -14,16 +14,12 @@
               <!-- Dynamically loaded components -->
               <!--<component v-bind:is="currentComponent"></component>-->
               <router-view />
-
-              <!--
-              <div v-if="error">Parent: {{ error }}</div>
-              -->
-
+              
             </el-col>
           </el-row>
         </div>
 
-        <div style="width: 500px;">
+        <div v-else style="width: 500px;">
           <p>
             <el-alert
               title="You are currently not logged into Office 365, please click to login below.."
@@ -33,38 +29,28 @@
             </el-alert>
           </p>
           <p>
-            <el-button type="success">All Done</el-button>
-          </p>    
+            <el-button type="info" icon="el-icon-user-solid" @click="login">Login</el-button>
+          </p>  
         </div>
+        
       </el-main>
       <Footer />
     </el-container>
-
     
-
-    <!--
-    <div style="text-align: center; padding-top: 200px;">
+    <div v-else style="text-align: center; padding-top: 200px;">
       <p>
         <img alt="Vue logo" src="./assets/ms_loader.gif" height="100"><br/><br/>
         <span style="font-weight: 600;">Authenticating to Microsoft 365...</span>
       </p>
     </div>
-    -->
 
-    <div style="text-align: center; padding-top: 200px;">
-      <p>
-        <img alt="Vue logo" src="./assets/ms_loader.gif" height="100"><br/><br/>
-        <span style="font-weight: 600;">Authenticating to Microsoft 365...</span>
-      </p>
-    </div>
-    
   </div>
-  
 </template>
 
 <script>
 
 import { reactive, toRefs } from 'vue'
+// import { useStore } from 'vuex'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
 import Footer from './components/Footer'
@@ -74,24 +60,12 @@ import Footer from './components/Footer'
 import useAuth from './store/auth'
 import * as Msal from "msal";
 
-export default {
-  name: 'App',
-  components: {
-    Header,
-    Navigation,
-    Footer,
-    // Users,
-    // HomeSample,
-    // ToDo
-  },
-  async setup() {
 
+function useState() {
     let state = reactive({
         visible: false,
         user: null,
     })
-
-    let { currentUser, getM365User } = useAuth()
 
     const config = {
       auth: {
@@ -108,27 +82,79 @@ export default {
 
     let client = new Msal.UserAgentApplication(config);
     let request = {
-      //scopes: ['Mail.ReadBasic']
-      //scopes: ['https://igeniusgroup.sharepoint.com/.default']
       scopes: ['https://igeniusgroup.sharepoint.com/AllSites.Read']
     };
 
-    console.log('client :>> ', client);
-    console.log('request :>> ', request);
+    let { currentUser, getM365User } = useAuth()
 
-    await getM365User(client, request)
-
+    getM365User(client, request)
     state.user = currentUser
 
-    console.log('user', state.user)
+    console.log('state.user', state.user)
+
     setTimeout(function() {
       state.visible = true;
-      console.log('visible', state.visible)
+      console.log('state.visible', state.visible)
     }, 1200)
 
+    return toRefs(state)
+    
+}
+
+ async function login() {
+    console.log('login...');
+
+    //Microsoft365 auth + setup
+    const config = {
+      auth: {
+        clientId: '9dc85e34-1e43-4dd8-b89c-2cc905369f9e',
+        tenantId: '76170b01-c058-4228-93a9-e403199735e1',
+        authority: 'https://login.microsoftonline.com/organizations/',
+        redirectUri: 'http://localhost:8080'
+      },
+      cache: {
+        cacheLocation: "localStorage",
+        storeAuthStateInCookie: true
+      }
+    };
+
+    var client = new Msal.UserAgentApplication(config)
+    var request = {
+      scopes: ['https://igeniusgroup.sharepoint.com/AllSites.Read']
+    };
+
+    await client.loginPopup(request)
+
+
+    let { currentUser, getM365User } = useAuth()
+    getM365User(client, request)
+
+    location.reload()
+    console.log('currentUser :>> ', currentUser);
+
+}
+
+export default {
+  name: 'App',
+  components: {
+    Header,
+    Navigation,
+    Footer,
+    // Users,
+    // HomeSample,
+    // ToDo
+  },
+  setup() {
+
+    const { visible, user } = useState()
+
+    console.log('visible :>> ', visible);
+    console.log('user :>> ', user);
 
     return {
-      ...toRefs(state)
+        visible,
+        user,
+        login
     }
   }
 }

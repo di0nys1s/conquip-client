@@ -10,10 +10,10 @@
             <div style="float: right; color: white;">
                 <div class="container">
                     <div class="text">
-                        <span>Adam Johnstone</span>
+                        <span>Burak Seyhan</span>
                     </div>
                     <div class="image">
-                        <img src="../assets/adamj.png" height="38" >
+                        <img src="../assets/profile.png" height="38" >
                     </div>
                 </div>
             </div>
@@ -39,11 +39,12 @@
 }
 
 img {
-  max-width: 100%
+  max-width: 100%;
 }
 
 .image {
   padding-right: 10px;
+  border-radius: 100%;
 }
 
 .text {

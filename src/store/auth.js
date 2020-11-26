@@ -8,21 +8,24 @@ export default function useAuth() {
   })
 
   const getM365User = async(x, y) => {
-    console.log('action.getM365User()');
+    console.log('action.getM365User()')
 
     if(!(state.token)) {
       let client = x;
       let request = y;
 
-      let tokenResponse = null;
+      let tokenResponse = null
+      let currentUser = null
       try {
-        tokenResponse = await client.acquireTokenSilent(request);
-        console.log('tokenResponse', tokenResponse)
-        state.currentUser = (!tokenResponse) ? null : tokenResponse.account.userName;
+        tokenResponse = await client.acquireTokenSilent(request)
+        console.log('tokenResponseAuthJS', tokenResponse)
+        currentUser = tokenResponse.account.userName
+        console.log('currentUserAuthJS', currentUser)
+        state.currentUser = (!tokenResponse) ? null : currentUser
         state.token = tokenResponse;
         // state.commit('setToken', tokenResponse);
       } catch (e) {
-        state.error = e
+        console.error(e)
       }
     }
   }
